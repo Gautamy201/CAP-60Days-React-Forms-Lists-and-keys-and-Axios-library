@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css"
+      rel="stylesheet"
+    />
+    <title>Template</title>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+  <script src="https://www.unpkg.com/react@18.2.0/umd/react.development.js"></script>
+  <script src="https://www.unpkg.com/react-dom@18.2.0/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script type="text/babel">
+    function AddTask({ addTask, handleInputValue, taskData }) {
+      const { title, status, assignee } = taskData;
+      return (
+        <>
+          <div class="container text-center">
+            <div class="row align-items-center justify-content-center gap-4">
+              <div class="col-3 d-flex row gap-2 align-items-center justify-content-center">
+                <label htmlforfor="title" class="fs-5 fw-bold">
+                  Title
+                </label>
+                <input
+                  class=" p-1 ps-2"
+                  id="inputTitle"
+                  type="text"
+                  onChange={handleInputValue}
+                />
+              </div>
+              <div class="col-2 d-flex gap-2 fs-6 justify-content-center">
+                <input
+                  id="inputCompleted"
+                  type="checkbox"
+                  onChange={handleInputValue}
+                />
+                <label htmlfor="">Completed</label>
+              </div>
+              <div class="col-3 d-flex gap-2 align-items-center justify-content-center row">
+                <label htmlfor="Assignee" class="fs-5 fw-bold">
+                  Assignee
+                </label>
+                <input
+                  class=" p-1 ps-2"
+                  id="inputAssignee"
+                  type="text"
+                  onChange={handleInputValue}
+                />
+              </div>
+            </div>
+            <div class="col-2 w-100 m-4">
+              <Button
+                buttonText={"Add New Task"}
+                buttonType={"btn w-100 btn-success"}
+                onclick={addTask}
+              />
+            </div>
+          </div>
+        </>
+      );
+    }
+
+    function Button({ buttonText, buttonType, onclick }) {
+      return (
+        <button type="button" class={buttonType} onClick={onclick}>
+          {buttonText}
+        </button>
+      );
+    }
+
+    function Task({ task, index, deleteTask, editeTask }) {
+      const { id, title, status, assignee } = task;
+      return (
+        <>
+          <div class="container text-center bg-body-secondary p-2">
+            <div class="row align-items-center justify-content-center gap-2">
+              <div class="col-3 border">{title}</div>
+              <div class="col-1 border">
+                {status ? (
+                  <i class="ri-checkbox-circle-line text-success fs-4 rounded-5"></i>
+                ) : (
+                  <i class="ri-close-circle-line text-danger fs-4 rounded-5"></i>
+                )}
+              </div>
+              <div class="col-3 border">{assignee}</div>
+              <div class="col-2 border">
+                <Button
+                  buttonText={"Edite"}
+                  buttonType={"btn w-100 btn-warning"}
+                  onclick={() => editeTask(index, id)}
+                />
+              </div>
+              <div class="col-2 border">
+                <Button
+                  buttonText={"Delete"}
+                  buttonType={"btn w-100 btn-danger"}
+                  onclick={() => deleteTask(id)}
+                />
+              </div>
+            </div>
+          </div>
+        </>
+      );
+    }
+
+    function Edite({ updateTaskData, setUpdateTaskData, updateTask }) {
+      const { id, title, status, assignee } = updateTaskData;
+      return (
+        <>
+          <div class="container text-center bg-body-secondary p-2">
+            <div class="row align-items-center justify-content-center gap-2">
+              <div class="col-3 border">
+                <input
+                  type="text"
+                  value={title}
+                  onChange={() =>
+                    setUpdateTaskData({
+                      id: id,
+                      title: event.target.value,
+                      status: status,
+                      assignee: assignee,
+                    })
+                  }
+                />
+              </div>
+              <div class="col-1 border">
+                <input
+                  type="checkbox"
+                  value={status}
+                  onChange={() =>
+                    setUpdateTaskData({
+                      id: id,
+                      title: title,
+                      status: event.target.checked,
+                      assignee: assignee,
+                    })
+                  }
+                />
+              </div>
+              <div class="col-3 border">
+                <input
+                  type="text"
+                  value={assignee}
+                  onChange={() =>
+                    setUpdateTaskData({
+                      id: id,
+                      title: title,
+                      status: status,
+                      assignee: event.target.value,
+                    })
+                  }
+                />
+              </div>
+              <div class="col-4 border">
+                <Button
+                  buttonText={"Update"}
+                  buttonType={"btn w-100 btn-warning"}
+                  onclick={() => updateTask(id)}
+                />
+              </div>
+            </div>
+          </div>
+        </>
+      );
+    }
+    // Your  code will go here
+    function App() {
+      //  http://localhost:3000/tasks
+      const [taskData, setTaskDate] = React.useState({
+        title: "",
+        status: "",
+        assignee: "",
+      });
+
+      const [apiTaskList, setApiTaskList] = React.useState([]);
+      const [taskList, setTaskList] = React.useState([]);
+      const [update, setUpdate] = React.useState(-1);
+
+      const [updateTaskData, setUpdateTaskData] = React.useState({
+        id: "",
+        title: "",
+        status: "",
+        assignee: "",
+      });
+
+      const taskApi = " http://localhost:3000/tasks";
+      const [assigneArray, setAssigneArray] = React.useState();
+
+      async function fetchTaskApiData() {
+        const response = await fetch(taskApi);
+        const data = await response.json();
+        setTaskList(data);
+        setApiTaskList(data);
+        let assigneArr = [];
+        data.map((item) => {
+          assigneArr.push(item.assignee);
+        });
+        const newArr = [...new Set(assigneArr)];
+
+        setAssigneArray(newArr);
+      }
+      React.useEffect(() => {
+        fetchTaskApiData();
+      }, []);
+      const addTask = () => {
+        const { title, assignee } = taskData;
+
+        if (title.length === 0 && assignee.length === 0) {
+          alert("Please fill all fields");
+        } else {
+          fetch(" http://localhost:3000/tasks", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(taskData),
+          });
+        }
+      };
+
+      const deleteTask = (id) => {
+        fetch(`http://localhost:3000/tasks/${id}`, {
+          method: "DELETE",
+        })
+          .then((response) => response.json())
+          .then((data) => console.log(data));
+      };
+      const editeTask = (index, id) => {
+        setUpdate(id);
+        fetch(`http://localhost:3000/tasks/${id}`)
+          .then((res) => res.json())
+          .then((data) =>
+            setUpdateTaskData({
+              id: data.id,
+              title: data.title,
+              status: data.status,
+              assignee: data.assignee,
+            })
+          );
+      };
+      const updateTask = (id) => {
+        fetch(`http://localhost:3000/tasks/${id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title: updateTaskData.title,
+            status: updateTaskData.status,
+            assignee: updateTaskData.assignee,
+          }),
+        });
+      };
+      const handleInputValue = () => {
+        const [inputTitle, inputCompleted, inputAssignee] =
+          document.querySelectorAll(
+            "#inputTitle,#inputCompleted,#inputAssignee"
+          );
+        setTaskDate({
+          title: inputTitle.value,
+          status: inputCompleted.checked,
+          assignee: inputAssignee.value,
+        });
+      };
+      const showAllTasks = () => {
+        setTaskList(apiTaskList);
+      };
+      const showIncompleteTasks = () => {
+        const filterTaskList = taskList.filter((task) => {
+          return task.status !== true;
+        });
+        setTaskList(filterTaskList);
+      };
+      const showTaskByAssignee = (event) => {
+        if (event.target.value === "All") {
+          setTaskList(apiTaskList);
+        } else {
+          const filterTaskList = apiTaskList.filter((task) => {
+            return task.assignee === event.target.value;
+          });
+          setTaskList(filterTaskList);
+        }
+      };
+      // ---------------------------------------------
+      return (
+        <div class="ms-1 me-1">
+          <h1 class="text-center  m-3"> Advanced Task Manager </h1>
+          <hr />
+          <div>
+            <AddTask
+              addTask={addTask}
+              handleInputValue={handleInputValue}
+              taskData={taskData}
+            />
+          </div>
+          <hr />
+          <div>
+            <div>
+              <h1 class="text-center p-2 border border-2 bg-danger-subtle">
+                Task List
+              </h1>
+              <div class="d-flex justify-content-center gap-5 p-2">
+                <Button
+                  buttonText={"Show All Tasks"}
+                  buttonType={"btn btn-primary"}
+                  onclick={showAllTasks}
+                />
+                <Button
+                  buttonText={"Show Incomplete Tasks"}
+                  buttonType={"btn btn-primary"}
+                  onclick={showIncompleteTasks}
+                />
+                <select
+                  name="assignee"
+                  id=""
+                  class="ps-4 pe-4 bg-primary rounded-2 text-white"
+                  style={{ cursor: "pointer" }}
+                  onChange={showTaskByAssignee}
+                >
+                  <option class="icon-link-hover" value="All">
+                    All
+                  </option>
+                  {assigneArray !== undefined &&
+                    assigneArray.map((ele) => {
+                      return (
+                        <option class=" icon-link-hover" value={ele}>
+                          {ele}
+                        </option>
+                      );
+                    })}
+                </select>
+              </div>
+            </div>
+            <div class="mt-3">
+              {taskList.length === 0 ? (
+                <p class="text-center fw-bold fs-4">
+                  No Data Found - Add Task First
+                </p>
+              ) : (
+                taskList.map((task, index) => {
+                  return (
+                    <>
+                      {task.id === update ? (
+                        <Edite
+                          updateTaskData={updateTaskData}
+                          setUpdateTaskData={setUpdateTaskData}
+                          updateTask={updateTask}
+                        />
+                      ) : (
+                        <Task
+                          key={index}
+                          task={task}
+                          index={index}
+                          deleteTask={deleteTask}
+                          editeTask={editeTask}
+                        />
+                      )}
+                    </>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+    ReactDOM.render(<App />, document.getElementById("root"));
+  </script>
+</html>
